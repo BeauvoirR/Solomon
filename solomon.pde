@@ -8,19 +8,24 @@ ControlP5 cp5;
 Grid grid;
 
 boolean ignoringStyles = true;
+JSONObject json;
 
 void setup(){
   size(1000, 900);
   smooth();
   PFont  f= createFont ("Arial", 25);
+  json = loadJSONObject("new.json");
+  int count = json.getInt("id");
+
   cp5 = new ControlP5(this);
   RG.init(this);
   RG.ignoreStyles(ignoringStyles);
   RG.setPolygonizer(RG.UNIFORMSTEP);
   RG.setPolygonizerStep(60);
-  grid = new Grid(RG.loadShape("solomon_map_active.svg"));
+  grid = new Grid(RG.loadShape("solomon_map_active.svg"), status.State.A);
   // create a new button with name 'buttonA'
   cp5.addButton("colorA")
+     .setBroadcast(false)
      .setValue(0)
      .setPosition(100,100)
      .setSize(100,40)
@@ -29,15 +34,19 @@ void setup(){
      ;
   // and add another 2 buttons
   cp5.addButton("colorB")
+     .setBroadcast(false)
      .setValue(100)
      .setPosition(100,140)
      .setSize(100,40)
+     .setBroadcast(true)
      ;
 
   cp5.addButton("colorC")
+     .setBroadcast(false)
      .setPosition(100,180)
      .setSize(100,40)
      .setValue(0)
+     .setBroadcast(true)
      ;
   opc = new OPC(this, "192.168.1.10", 7890);
 }
@@ -74,6 +83,29 @@ void draw(){
   popMatrix();
 }
 
+void keyPressed(){
+  if (grid.current_state == status.State.B){
+    switch(keyCode){
+      case RIGHT:
+        grid.increment_index();
+        break;
+      case LEFT:
+        grid.decrement_index();
+        break;
+      case UP:
+        grid.increment_led_index();
+        break;
+      case DOWN:
+        grid.decrement_led_index();
+        break;
+    }
+    switch(key){
+      case 's':
+        println("TEST");
+    }
+  }
+}
+
 // void set_pixel(RShape shape){
 //   if (led_map.containsKey(shape.name)){
 //     //println(led_map.get(shape.name));
@@ -94,8 +126,9 @@ public void controlEvent(ControlEvent theEvent) {
 
 // function colorB will receive changes from
 // controller with name colorB
-public void colorB(int theValue) {
-  println("a button event from colorB: "+theValue);
+void colorB(int theValue) {
+  //println("a button event from colorB: "+theValue);
+  grid.update_state(status.State.B);
   // for(int i=0;i<grid.countChildren();i++){
   //   opc.setPixel(i, color(10, 100, 40));
   // }

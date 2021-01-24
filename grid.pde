@@ -1,5 +1,9 @@
 import java.util.Map;
 
+static class status {
+   enum State {A,B,C};
+}
+
 class Grid {
 
   HashMap<String,Integer> led_map;
@@ -7,11 +11,16 @@ class Grid {
   RShape grp;
   RShape cLine;
   RPoint[] onLine;
+  status.State current_state;
+  int index;
+  int led_index;
 
-  Grid(RShape svg){
+  Grid(RShape svg, status.State init_status){
+    index = 0;
     grp = svg;
     led_map = new HashMap<String,Integer>();
     map = new HashMap<String,Pixel>();
+    current_state = init_status;
     // VERY IMPORTANT: Allways initialize the library before using it
     grp.centerIn(g, 100, 1, 1);
     println(grp.countChildren());
@@ -54,19 +63,62 @@ class Grid {
     // }
   }
 
+  void increment_index(){
+    index += 1;
+    println(index);
+  }
+  void increment_led_index(){
+    led_index += 1;
+    println(led_index);
+  }
+  void decrement_index(){
+    index -= 1;
+    println(index);
+  }
+  void decrement_led_index(){
+    led_index -= 1;
+    println(led_index);
+  }
+  void update_state(status.State state){
+    print("Updating");
+    current_state = state;
+  }
+
   void display(){
-    for (Map.Entry entry : map.entrySet()) {
-      Pixel p = map.get(entry.getKey());
-      if (p.is_on()){
-        fill(255);
-        grp.getChild(p.name).draw();
-        opc.setPixel(p.id, color(0, 100, 20));
-      }
-      else{
-        noFill();
-        opc.setPixel(p.id, color(0, 0, 0));
-      }
+    switch (current_state) {
+        case A :
+            //println("A");
+            break;
+        case B :
+            //println("B");
+            fill(255);
+            grp.children[index].draw();
+            for(int i=0;i<grp.countChildren();i++){
+              if(i == led_index){
+                opc.setPixel(i, color(0, 100, 20));
+              }
+              else{
+                opc.setPixel(i, color(0, 0, 0));
+              }
+            }
+            noFill();
+            break;
+        case C :
+            //println("C");
+            break;
     }
+    // for (Map.Entry entry : map.entrySet()) {
+    //   Pixel p = map.get(entry.getKey());
+    //   if (p.is_on()){
+    //     fill(255);
+    //     grp.getChild(p.name).draw();
+    //     opc.setPixel(p.id, color(0, 100, 20));
+    //   }
+    //   else{
+    //     noFill();
+    //     opc.setPixel(p.id, color(0, 0, 0));
+    //   }
+    // }
     grp.draw();
     opc.writePixels();
   }
