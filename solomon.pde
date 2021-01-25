@@ -1,9 +1,10 @@
 import controlP5.*;
 import geomerative.*;
+import java.util.Set;
+import java.util.Iterator;
 
 OPC opc;
 int c1,c2;
-
 ControlP5 cp5;
 Grid grid;
 
@@ -13,10 +14,10 @@ JSONObject json;
 void setup(){
   size(1000, 900);
   smooth();
+  opc = new OPC(this, "192.168.1.10", 7890);
   PFont  f= createFont ("Arial", 25);
-  json = loadJSONObject("new.json");
-  int count = json.getInt("id");
-
+  //json = new JSONObject();
+  json = loadJSONObject("svg_led_mapping.json");
   cp5 = new ControlP5(this);
   RG.init(this);
   RG.ignoreStyles(ignoringStyles);
@@ -48,7 +49,7 @@ void setup(){
      .setValue(0)
      .setBroadcast(true)
      ;
-  opc = new OPC(this, "192.168.1.10", 7890);
+  
 }
 
 void draw(){
@@ -100,8 +101,16 @@ void keyPressed(){
         break;
     }
     switch(key){
+      case 'm':
+        println("SAVING");
+        grid.save_mapping();
+        break;
       case 's':
-        println("TEST");
+        //save map to json
+        saveJSONObject(json, "svg_led_mapping.json");
+        break;
+      case 'l':
+        grid.load_mapping();
     }
   }
 }
@@ -141,12 +150,6 @@ public void colorA(int theValue) {
   //   opc.setPixel(i, color(0, 0, 0));
   // }
   // opc.writePixels();
-}
-
-public void play(int theValue) {
-  println("a button event from buttonB: "+theValue);
-  c1 = c2;
-  c2 = color(0,0,0);
 }
 
 void mouseClicked(){
