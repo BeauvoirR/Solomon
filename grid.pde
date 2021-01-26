@@ -6,7 +6,7 @@ static class status {
 
 class Grid {
 
-  HashMap<String,Integer> led_map;
+  HashMap<String,Pixel> led_map;
   HashMap<String,Pixel> map;
   RShape grp;
   RShape cLine;
@@ -20,7 +20,7 @@ class Grid {
   Grid(RShape svg, status.State init_status){
     index = 0;
     grp = svg;
-    led_map = new HashMap<String,Integer>();
+    led_map = new HashMap<String,Pixel>();
     map = new HashMap<String,Pixel>();
     current_state = init_status;
     // VERY IMPORTANT: Allways initialize the library before using it
@@ -28,24 +28,29 @@ class Grid {
     name = grp.children[index].name;
     // Construct map
     for(int i=0;i<grp.countChildren();i++){
-      Pixel p = new Pixel(grp.children[i].name);
+      Pixel p = new Pixel();
+      p.set_name(grp.children[i].name);
       map.put(grp.children[i].name, p);
     }
     load_mapping();
   }
 
   void update_leds(){
-    for(Pixel p: pixel_buffer){
+    for (Map.Entry<String, Pixel> me : led_map.entrySet()){
+      Pixel p = me.getValue();
       opc.setPixel(p.id, p.col);
     }
-    
+    // for(Pixel p: pixel_buffer){
+    //   opc.setPixel(p.id, p.col);
+    // }
+
   }
-  
-  void set_led(int i, color c){
-    Pixel p = pixel_buffer[i];
+
+  void set_led(String s, color c){
+    Pixel p = led_map.get(s);
     p.set_color(c);
   }
-  
+
   void increment_index(){
     index += 1;
     println("Index: ",index);
@@ -70,30 +75,39 @@ class Grid {
   void display(){
     switch (current_state) {
         case A :
-            //println("A");
+            // Using an enhanced loop to iterate over each entry
+            for (Map.Entry<String, Pixel> me : led_map.entrySet()) {
+              Pixel p = me.getValue();
+              if (p.is_on){
+                set_led(p.name, color(100,70,40));
+                fill(255);
+                grp.getChild(p.name).draw();
+                noFill();
+              }
+            }
             break;
         case B :
             //println("B");
            //load_mapping();
-           set_led(led_index, color(150, 100, 20));
-           for (Map.Entry entry : map.entrySet()) {
-             Pixel p = map.get(entry.getKey());
-             if (p.is_on()){
-               fill(255);
-               grp.getChild(p.name).draw();
-               set_led(p.id, color(100, 100, 20));
-               noFill();
-             }
-             else{
-               noFill();
-               opc.setPixel(p.id, color(0, 0, 0));
-             }
-           }
-            fill(255);
-            grp.children[index].draw();
-            
+           //set_led(led_index, color(150, 100, 20));
+           // for (Map.Entry entry : map.entrySet()) {
+           //   Pixel p = map.get(entry.getKey());
+           //   if (p.is_on()){
+           //     fill(255);
+           //     grp.getChild(p.name).draw();
+           //     set_led(p.id, color(100, 100, 20));
+           //     noFill();
+           //   }
+           //   else{
+           //     noFill();
+           //     opc.setPixel(p.id, color(0, 0, 0));
+           //   }
+           // }
+           //  fill(255);
+           //  grp.children[index].draw();
+
             //opc.setPixel(0, color(150,100,35));
-            
+
             noFill();
             break;
         case C :
@@ -125,29 +139,33 @@ class Grid {
      p.set_id(led_index);
      map.put(name, p);
   }
-  
-  
+
+
   void load_mapping(){
     println("LOADING");
-    int iterator = 0;
+    //int iterator = 0;
     Set<String> keys = json.keys();
-    pixel_buffer = new Pixel[keys.size()];
+    //pixel_buffer = new Pixel[keys.size()];
     for(String s : keys){
-      Pixel p = new Pixel(s);
+      Pixel p = new Pixel();
       p.set_id(json.getInt(s));
-      pixel_buffer[iterator] = p;
-      iterator += 1;
+      p.set_name(s);
+      led_map.put(s, p);
+      //pixel_buffer[iterator] = p;
+      //iterator += 1;
     }
   }
-  
+
   void contains(int x, int y){
-    RPoint p = new RPoint(x, y);
+    RPoint point = new RPoint(x, y);
     //RPoint p = new RPoint(mouseX-width/2, mouseY-height/2);
     for(int i=0;i<grp.countChildren();i++){
-      if (grp.children[i].contains(p)) {
-        Pixel pix = map.get(grp.children[i].name);
-        pix.get_id();
-        pix.toggle();
+      if (grp.children[i].contains(point)) {
+        //Pixel pix = map.get(grp.children[i].name);
+        //Pixel p = pixel_buffer[i];
+        Pixel p = led_map.get(grp.children[i].name);
+        println(p.get_id());
+        p.toggle();
       }
     }
   }

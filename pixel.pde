@@ -7,8 +7,7 @@ class Pixel{
   String name;
   color col;
 
-  Pixel(String n){
-    name = n;
+  Pixel(){
     is_on = false;
     col = color(0,0,0);
   }
@@ -25,10 +24,14 @@ class Pixel{
     id = i;
   }
 
+  void set_name(String n){
+    name = n;
+  }
+
   void set_color(color c){
     col = c;
   }
-  
+
   void toggle(){
     is_on =! is_on;
     println(is_on);
