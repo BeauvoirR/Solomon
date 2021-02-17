@@ -1,7 +1,7 @@
 import java.util.Map;
 
-static class status {
-   enum State {A,B,C};
+static class Interface {
+   enum State {INACTIVE,SETUP,DRAW};
 }
 
 class Grid {
@@ -11,13 +11,13 @@ class Grid {
   RShape grp;
   RShape cLine;
   RPoint[] onLine;
-  status.State current_state;
+  Interface.State current_state;
   int index;
   int led_index;
   String name;
   Pixel[] pixel_buffer;
 
-  Grid(RShape svg, status.State init_status){
+  Grid(RShape svg, Interface.State init_status){
     index = 0;
     grp = svg;
     led_map = new HashMap<String,Pixel>();
@@ -67,14 +67,14 @@ class Grid {
     led_index -= 1;
     println("LED Index: ", led_index);
   }
-  void update_state(status.State state){
+  void update_state(Interface.State state){
     print("Updating");
     current_state = state;
   }
 
   void display(){
     switch (current_state) {
-        case A :
+        case DRAW :
             // Using an enhanced loop to iterate over each entry
             for (Map.Entry<String, Pixel> me : led_map.entrySet()) {
               Pixel p = me.getValue();
@@ -86,7 +86,7 @@ class Grid {
               }
             }
             break;
-        case B :
+        case SETUP :
             //println("B");
            //load_mapping();
            //set_led(led_index, color(150, 100, 20));
@@ -110,7 +110,7 @@ class Grid {
 
             noFill();
             break;
-        case C :
+        case INACTIVE :
             //println("C");
             break;
         }

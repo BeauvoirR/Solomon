@@ -2,12 +2,15 @@ import controlP5.*;
 import geomerative.*;
 import java.util.Set;
 import java.util.Iterator;
+import java.util.*;
+
 
 OPC opc;
 int c1,c2;
 ControlP5 cp5;
 Grid grid;
-
+PFont f;
+int fontSize = 32;
 boolean ignoringStyles = true;
 JSONObject json;
 
@@ -21,7 +24,9 @@ void setup(){
   //size(1000, 900);
   smooth();
   opc = new OPC(this, "192.168.1.2", 7890);
-  PFont  f= createFont ("Arial", 25);
+  //PFont f = createFont ("Arial", 25);
+  f = createFont("DINCond-Regular.ttf", fontSize);
+  textFont(f, fontSize);
   //json = new JSONObject();
   json = loadJSONObject(dataPath("svg_led_mapping.json"));
   cp5 = new ControlP5(this);
@@ -29,41 +34,55 @@ void setup(){
   RG.ignoreStyles(ignoringStyles);
   RG.setPolygonizer(RG.UNIFORMSTEP);
   RG.setPolygonizerStep(60);
-  grid = new Grid(RG.loadShape(dataPath("solomon_map_active.svg")), status.State.A);
+  grid = new Grid(RG.loadShape(dataPath("solomon_map_active.svg")), Interface.State.INACTIVE);
   // create a new button with name 'buttonA'
-  cp5.addButton("colorA")
-     .setBroadcast(false)
-     .setValue(0)
-     .setPosition(100,100)
-     .setSize(100,40)
-     .setLabel("LED OFF")
-     .setFont(f)
-     ;
+  // cp5.addButton("colorA")
+  //    .setBroadcast(false)
+  //    .setValue(0)
+  //    .setPosition(100,100)
+  //    .setSize(100,40)
+  //    .setLabel("LED OFF")
+  //    .setFont(f)
+  //    ;
   // and add another 2 buttons
-  cp5.addButton("colorB")
-     .setBroadcast(false)
-     .setValue(100)
-     .setPosition(100,140)
-     .setSize(100,40)
-     .setBroadcast(true)
-     ;
 
-  cp5.addButton("colorC")
-     .setBroadcast(false)
-     .setPosition(100,180)
-     .setSize(100,40)
-     .setValue(0)
-     .setBroadcast(true)
-     ;
+
+
+  // cp5.addButton("colorB")
+  //    .setBroadcast(false)
+  //    .setValue(100)
+  //    .setPosition(100,140)
+  //    .setSize(100,40)
+  //    .setBroadcast(true)
+  //    ;
+  //
+  // cp5.addButton("colorC")
+  //    .setBroadcast(false)
+  //    .setPosition(100,180)
+  //    .setSize(100,40)
+  //    .setValue(0)
+  //    .setBroadcast(true)
+  //    ;
+  List l = Arrays.asList("INACTIVE", "DRAW", "SETUP");
+  cp5.addScrollableList("dropdown")
+    .setPosition(10, 10)
+    .setSize(200, 140)
+    .setBarHeight(40)
+    .setItemHeight(40)
+    .addItems(l)
+    // .setType(ScrollableList.LIST) // currently supported DROPDOWN and LIST
+    ;
 
 }
 
 void draw(){
+
   pushMatrix();
   translate(width/2, height/2);
   background(100);
   stroke(0);
   noFill();
+
   grid.display();
   // grp.draw();
   // RShape cLine = new RShape();
@@ -88,10 +107,42 @@ void draw(){
   //opc.setPixel(led_map.get("P0T0"), color(255,0,0));
   //opc.writePixels();
   popMatrix();
+  text("TEST", 10,100);
+}
+
+void dropdown(int n) {
+  /* request the selected item based on index n */
+
+  Map s = cp5.get(ScrollableList.class, "dropdown").getItem(n);
+  println(n, s);
+  switch(n){
+    case 0:
+      grid.update_state(Interface.State.INACTIVE);
+    case 1:
+      grid.update_state(Interface.State.DRAW);
+    case 2:
+      grid.update_state(Interface.State.SETUP);
+  }
+  /* here an item is stored as a Map  with the following key-value pairs:
+   * name, the given name of the item
+   * text, the given text of the item by default the same as name
+   * value, the given value of the item, can be changed by using .getItem(n).put("value", "abc"); a value here is of type Object therefore can be anything
+   * color, the given color of the item, how to change, see below
+   * view, a customizable view, is of type CDrawable
+   */
+  //grid.update_state(status.State.B);
+  CColor c = new CColor();
+  c.setBackground(color(255,0,0));
+  cp5.get(ScrollableList.class, "dropdown").getItem(n).put("color", c);
+
+}
+
+void mouseClicked(){
+  grid.contains(mouseX-width/2, mouseY-height/2);
 }
 
 void keyPressed(){
-  if (grid.current_state == status.State.B){
+  if (grid.current_state == Interface.State.SETUP){
     switch(keyCode){
       case RIGHT:
         grid.increment_index();
@@ -134,30 +185,26 @@ void keyPressed(){
 //   }
 // }
 
-public void controlEvent(ControlEvent theEvent) {
-  println(theEvent.getController().getName());
-}
-
-
-// function colorB will receive changes from
-// controller with name colorB
-void colorB(int theValue) {
-  //println("a button event from colorB: "+theValue);
-  grid.update_state(status.State.B);
-  // for(int i=0;i<grid.countChildren();i++){
-  //   opc.setPixel(i, color(10, 100, 40));
-  // }
-  // opc.writePixels();
-}
-
-public void colorA(int theValue) {
-  // println("a button event from colorB: "+theValue);
-  // for(int i=0;i<grid.countChildren();i++){
-  //   opc.setPixel(i, color(0, 0, 0));
-  // }
-  // opc.writePixels();
-}
-
-void mouseClicked(){
-  grid.contains(mouseX-width/2, mouseY-height/2);
-}
+// public void controlEvent(ControlEvent theEvent) {
+//   println(theEvent.getController().getName());
+// }
+//
+//
+// // function colorB will receive changes from
+// // controller with name colorB
+// void colorB(int theValue) {
+//   //println("a button event from colorB: "+theValue);
+//   grid.update_state(Interface.State.SETUP);
+//   // for(int i=0;i<grid.countChildren();i++){
+//   //   opc.setPixel(i, color(10, 100, 40));
+//   // }
+//   // opc.writePixels();
+// }
+//
+// public void colorA(int theValue) {
+//   // println("a button event from colorB: "+theValue);
+//   // for(int i=0;i<grid.countChildren();i++){
+//   //   opc.setPixel(i, color(0, 0, 0));
+//   // }
+//   // opc.writePixels();
+// }
